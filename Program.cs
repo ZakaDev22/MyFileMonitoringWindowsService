@@ -33,7 +33,7 @@ namespace MyFileMonitoringWindowsService
                 ServiceBase[] ServicesToRun;
                 ServicesToRun = new ServiceBase[]
                 {
-                    new MyFullServiceStateImplementation()
+                    new MyFileMonitoringWindowsService()
                 };
                 ServiceBase.Run(ServicesToRun);
             }
