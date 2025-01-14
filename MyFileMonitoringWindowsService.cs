@@ -91,6 +91,7 @@ namespace MyFileMonitoringWindowsService
 
             // Hook up event handler for file creation
             watcher.Created += OnFileCreated;
+            watcher.EnableRaisingEvents = true;
 
             // Log the start of file monitoring
             LogServiceEvent($"File monitoring started on folder: {sourceFolder}");
@@ -115,7 +116,7 @@ namespace MyFileMonitoringWindowsService
             try
             {
                 // Give some time for the file name to stabilize
-                Thread.Sleep(500); // Adjust as necessary
+                Thread.Sleep(3000);
 
                 // Get the file path from e.FullPath (temporary name)
                 string sourceFilePath = e.FullPath;
@@ -149,14 +150,18 @@ namespace MyFileMonitoringWindowsService
         public void StartInConsole()
         {
             // Start monitoring files in console mode
-            FileSystemWatcher watcher = new FileSystemWatcher();
-            watcher.Path = ConfigurationManager.AppSettings["SourceFolder"];
+            FileSystemWatcher watcher = new FileSystemWatcher
+            {
+                Path = sourceFolder,
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.DirectoryName,
+                Filter = "*.*", // Monitor all file types
+                EnableRaisingEvents = true // Start monitoring
+            };
             watcher.Created += OnFileCreated;
             watcher.EnableRaisingEvents = true;
             Console.WriteLine("Press Enter to stop the service...");
             Console.ReadLine();
             watcher.Dispose();
-            OnStop();
         }
     }
 }
