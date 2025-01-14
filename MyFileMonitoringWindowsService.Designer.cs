@@ -1,6 +1,6 @@
 ﻿namespace MyFileMonitoringWindowsService
 {
-    partial class Service1
+    partial class MyFileMonitoringWindowsService
     {
         /// <summary> 
         /// Required designer variable.
