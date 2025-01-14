@@ -27,7 +27,7 @@ namespace MyFileMonitoringWindowsService
                 ServiceName = "MyFileMonitoringWindowsService",
                 DisplayName = "My File Monitor Service State Implementation Example",
                 Description = "A Windows Service that demonstrates all service states and events.",
-                StartType = ServiceStartMode.Manual
+                StartType = ServiceStartMode.Automatic
             };
 
             // Add both installers to the Installers collection
