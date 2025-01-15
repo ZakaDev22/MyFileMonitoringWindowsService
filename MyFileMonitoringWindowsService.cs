@@ -78,7 +78,7 @@ namespace MyFileMonitoringWindowsService
             CreateFolderIfDoesNotExist(logFolder);
 
             // Log service start
-            LogServiceEvent("Service started.");
+            LogServiceEvent("Service started. [Service Side]");
 
             // Initialize the FileSystemWatcher
             watcher = new FileSystemWatcher
@@ -101,7 +101,7 @@ namespace MyFileMonitoringWindowsService
         {
 
             // Log service stop
-            LogServiceEvent("Service stopped.");
+            LogServiceEvent("Service stopped. [Service Side]");
 
             // Stop the FileSystemWatcher
             watcher.EnableRaisingEvents = false;
@@ -149,6 +149,9 @@ namespace MyFileMonitoringWindowsService
 
         public void StartInConsole()
         {
+            // Log service stop
+            LogServiceEvent("Service Start. [Console Side]");
+
             // Start monitoring files in console mode
             FileSystemWatcher watcher = new FileSystemWatcher
             {
@@ -162,6 +165,8 @@ namespace MyFileMonitoringWindowsService
             Console.WriteLine("Press Enter to stop the service...");
             Console.ReadLine();
             watcher.Dispose();
+            // Log service stop
+            LogServiceEvent("Service stopped. [Console Side]");
         }
     }
 }
