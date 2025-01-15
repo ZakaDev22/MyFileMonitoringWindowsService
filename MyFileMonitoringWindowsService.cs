@@ -2,7 +2,6 @@
 using System.Configuration;
 using System.IO;
 using System.ServiceProcess;
-using System.Threading;
 
 
 namespace MyFileMonitoringWindowsService
@@ -110,24 +109,29 @@ namespace MyFileMonitoringWindowsService
 
         private void OnFileCreated(object sender, FileSystemEventArgs e)
         {
-            // Handle the file creation event
-            LogServiceEvent($"File detected: {e.FullPath}");
 
             try
             {
-                // Give some time for the file name to stabilize
-                Thread.Sleep(3000);
+                // Give some time for the file name to stabilize If Its Created Inside The source Folder
+                // Thread.Sleep(3000);
+
+                while (!IsFileStillInTransition(e.FullPath))
+                {
+                    continue;
+                }
+
+                // Handle the file creation event
+                LogServiceEvent($"File detected: {e.FullPath}");
 
                 // Get the file path from e.FullPath (temporary name)
-                string sourceFilePath = e.FullPath;
-                string extension = Path.GetExtension(sourceFilePath);
+                string extension = Path.GetExtension(e.FullPath);
 
-                // Check if it's the only file with the .txt extension in the folder
-                string[] files = Directory.GetFiles(sourceFolder, "*.txt");
+                // Get Any File Created In The Source Folder 
+                string[] files = Directory.GetFiles(sourceFolder, "*.*");
 
                 if (files.Length == 1)
                 {
-                    // Assume the file is the one that was just created
+                    // Assume the file is the one that was just created or Pasted From Another Folder
                     string actualFilePath = files[0];
 
                     // Generate the new file name with GUID
@@ -138,6 +142,8 @@ namespace MyFileMonitoringWindowsService
                     LogServiceEvent($"File renamed and moved: {actualFilePath} -> {newFileName}");
 
                 }
+                else
+                    LogServiceEvent($"Error, There is More Than One File In The Source Folder ?");
             }
             catch (Exception ex)
             {
@@ -146,6 +152,21 @@ namespace MyFileMonitoringWindowsService
         }
 
 
+        private static bool IsFileStillInTransition(string filePath)
+        {
+            try
+            {
+                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
 
         public void StartInConsole()
         {
@@ -153,7 +174,7 @@ namespace MyFileMonitoringWindowsService
             LogServiceEvent("Service Start. [Console Side]");
 
             // Start monitoring files in console mode
-            FileSystemWatcher watcher = new FileSystemWatcher
+            watcher = new FileSystemWatcher
             {
                 Path = sourceFolder,
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.DirectoryName,
@@ -164,9 +185,13 @@ namespace MyFileMonitoringWindowsService
             watcher.EnableRaisingEvents = true;
             Console.WriteLine("Press Enter to stop the service...");
             Console.ReadLine();
+
             watcher.Dispose();
+
             // Log service stop
             LogServiceEvent("Service stopped. [Console Side]");
         }
+
+
     }
 }
