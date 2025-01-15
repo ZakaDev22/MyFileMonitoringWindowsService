@@ -32,7 +32,7 @@ To build the project, follow these steps:
 2. Navigate to the directory containing the compiled service (`bin\Release`).
 3. Run the following command to install the service:
    ```bash
-   InstallUtil FileMonitoringService.exe
+   C:\Windows\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe MyFileMonitoringWindowsService.exe
    
 ---
 
@@ -48,7 +48,7 @@ To build the project, follow these steps:
 2. Navigate to the directory containing the compiled service (`bin\Release`).
 3. Run the following command to uninstall the service:
    ```bash
-   InstallUtil /u FileMonitoringService.exe
+   sc delete MyFileMonitoringWindowsService
 ---
 ## Test Log
 
