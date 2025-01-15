@@ -62,6 +62,29 @@ namespace MyFileMonitoringWindowsService
             clsGlobalMembers.watcher.Dispose();
         }
 
+        // OnPause Event
+        protected override void OnPause()
+        {
+            clsLogAndValidation.LogServiceEvent("Service Paused");
+            clsGlobalMembers.watcher.EnableRaisingEvents = false;
+        }
+
+        // OnContinue Event
+        protected override void OnContinue()
+        {
+            clsLogAndValidation.LogServiceEvent("Service Resumed");
+            clsGlobalMembers.watcher.EnableRaisingEvents = true;
+        }
+
+        // OnShutdown Event
+        protected override void OnShutdown()
+        {
+            clsLogAndValidation.LogServiceEvent("Service Shutdown due to system shutdown");
+            // Stop the FileSystemWatcher
+            clsGlobalMembers.watcher.EnableRaisingEvents = false;
+            clsGlobalMembers.watcher.Dispose();
+        }
+
         private void OnFileCreated(object sender, FileSystemEventArgs e)
         {
 
@@ -106,7 +129,7 @@ namespace MyFileMonitoringWindowsService
             }
         }
 
-
+        // check if The File  want The Create Event To Move it To The Destination Folder Is Completed Other ways I dont Want The Event To Rise If This Function Return False
         private static bool IsFileStillInTransition(string filePath)
         {
             try
@@ -136,6 +159,7 @@ namespace MyFileMonitoringWindowsService
                 Filter = "*.*", // Monitor all file types
                 EnableRaisingEvents = true // Start monitoring
             };
+
             clsGlobalMembers.watcher.Created += OnFileCreated;
             clsGlobalMembers.watcher.EnableRaisingEvents = true;
             Console.WriteLine("Press Enter to stop the service...");
