@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using System.IO;
 using System.ServiceProcess;
 
@@ -8,103 +7,59 @@ namespace MyFileMonitoringWindowsService
 {
     public partial class MyFileMonitoringWindowsService : ServiceBase
     {
-        private static string sourceFolder = ConfigurationManager.AppSettings["SourceFolder"];
-        private static string destinationFolder = ConfigurationManager.AppSettings["DestinationFolder"];
-        private static string logFolder = ConfigurationManager.AppSettings["LogFolder"];
-        private static string logFilePath = Path.Combine(logFolder, "ServiceStateLog.txt");
 
-        // Instance member for the FileSystemWatcher
-        private FileSystemWatcher watcher;
 
-        public static string GenerateGUID()
-        {
-
-            // Generate a new GUID
-            Guid newGuid = Guid.NewGuid();
-
-            // convert the GUID to a string
-            return newGuid.ToString();
-
-        }
-
-        public static bool CreateFolderIfDoesNotExist(string FolderPath)
-        {
-
-            // Check if the folder exists
-            if (!Directory.Exists(FolderPath))
-            {
-                try
-                {
-                    // If it doesn't exist, create the folder
-                    Directory.CreateDirectory(FolderPath);
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-
-        }
 
         public MyFileMonitoringWindowsService()
         {
             InitializeComponent();
+
+            // Set the CanPauseAndContinue property to true
+            CanPauseAndContinue = true; //The service supports pausing and resuming operations.
+
+            // Enable support for OnShutdown
+            CanShutdown = true; // The service is notified when the system shuts down.
+
+            // Ensure the folders exist
+            clsLogAndValidation.CreateFolderIfDoesNotExist(clsGlobalMembers.sourceFolder);
+            clsLogAndValidation.CreateFolderIfDoesNotExist(clsGlobalMembers.destinationFolder);
+            clsLogAndValidation.CreateFolderIfDoesNotExist(clsGlobalMembers.logFolder);
         }
 
-        // Log a message to a file with a timestamp
-        //The service logs all its state transitions (Start, Stop, Pause, Continue, Shutdown) to a file named ServiceStateLog.txt in the configured directory.
-        // Each log entry includes a timestamp for tracking purposes.
-        private void LogServiceEvent(string message)
-        {
-            string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n";
-            File.AppendAllText(logFilePath, logMessage);
 
-            // Write to console if running interactively
-            if (Environment.UserInteractive)
-            {
-                Console.WriteLine(logMessage);
-            }
-        }
 
         protected override void OnStart(string[] args)
         {
 
-            // Ensure the folders exist
-            CreateFolderIfDoesNotExist(sourceFolder);
-            CreateFolderIfDoesNotExist(logFolder);
-
             // Log service start
-            LogServiceEvent("Service started. [Service Side]");
+            clsLogAndValidation.LogServiceEvent("Service started. [Service Side]");
 
             // Initialize the FileSystemWatcher
-            watcher = new FileSystemWatcher
+            clsGlobalMembers.watcher = new FileSystemWatcher
             {
-                Path = sourceFolder,
+                Path = clsGlobalMembers.sourceFolder,
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.DirectoryName,
                 Filter = "*.*", // Monitor all file types
                 EnableRaisingEvents = true // Start monitoring
             };
 
             // Hook up event handler for file creation
-            watcher.Created += OnFileCreated;
-            watcher.EnableRaisingEvents = true;
+            clsGlobalMembers.watcher.Created += OnFileCreated;
+            clsGlobalMembers.watcher.EnableRaisingEvents = true;
 
             // Log the start of file monitoring
-            LogServiceEvent($"File monitoring started on folder: {sourceFolder}");
+            clsLogAndValidation.LogServiceEvent($"File monitoring started on folder: {clsGlobalMembers.sourceFolder}");
         }
 
         protected override void OnStop()
         {
 
             // Log service stop
-            LogServiceEvent("Service stopped. [Service Side]");
+            clsLogAndValidation.LogServiceEvent("Service stopped. [Service Side]");
 
             // Stop the FileSystemWatcher
-            watcher.EnableRaisingEvents = false;
-            watcher.Dispose();
+            clsGlobalMembers.watcher.EnableRaisingEvents = false;
+            clsGlobalMembers.watcher.Dispose();
         }
 
         private void OnFileCreated(object sender, FileSystemEventArgs e)
@@ -121,13 +76,13 @@ namespace MyFileMonitoringWindowsService
                 }
 
                 // Handle the file creation event
-                LogServiceEvent($"File detected: {e.FullPath}");
+                clsLogAndValidation.LogServiceEvent($"File detected: {e.FullPath}");
 
                 // Get the file path from e.FullPath (temporary name)
                 string extension = Path.GetExtension(e.FullPath);
 
                 // Get Any File Created In The Source Folder 
-                string[] files = Directory.GetFiles(sourceFolder, "*.*");
+                string[] files = Directory.GetFiles(clsGlobalMembers.sourceFolder, "*.*");
 
                 if (files.Length == 1)
                 {
@@ -135,19 +90,19 @@ namespace MyFileMonitoringWindowsService
                     string actualFilePath = files[0];
 
                     // Generate the new file name with GUID
-                    string newFileName = Path.Combine(destinationFolder, GenerateGUID() + extension);
+                    string newFileName = Path.Combine(clsGlobalMembers.destinationFolder, clsLogAndValidation.GenerateGUID() + extension);
 
                     // Move and rename the file
                     File.Move(actualFilePath, newFileName);
-                    LogServiceEvent($"File renamed and moved: {actualFilePath} -> {newFileName}");
+                    clsLogAndValidation.LogServiceEvent($"File renamed and moved: {actualFilePath} -> {newFileName}");
 
                 }
                 else
-                    LogServiceEvent($"Error, There is More Than One File In The Source Folder ?");
+                    clsLogAndValidation.LogServiceEvent($"Error, There is More Than One File In The Source Folder ?");
             }
             catch (Exception ex)
             {
-                LogServiceEvent($"Error processing file {e.FullPath}: {ex.Message}");
+                clsLogAndValidation.LogServiceEvent($"Error processing file {e.FullPath}: {ex.Message}");
             }
         }
 
@@ -171,25 +126,25 @@ namespace MyFileMonitoringWindowsService
         public void StartInConsole()
         {
             // Log service stop
-            LogServiceEvent("Service Start. [Console Side]");
+            clsLogAndValidation.LogServiceEvent("Service Start. [Console Side]");
 
             // Start monitoring files in console mode
-            watcher = new FileSystemWatcher
+            clsGlobalMembers.watcher = new FileSystemWatcher
             {
-                Path = sourceFolder,
+                Path = clsGlobalMembers.sourceFolder,
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.DirectoryName,
                 Filter = "*.*", // Monitor all file types
                 EnableRaisingEvents = true // Start monitoring
             };
-            watcher.Created += OnFileCreated;
-            watcher.EnableRaisingEvents = true;
+            clsGlobalMembers.watcher.Created += OnFileCreated;
+            clsGlobalMembers.watcher.EnableRaisingEvents = true;
             Console.WriteLine("Press Enter to stop the service...");
             Console.ReadLine();
 
-            watcher.Dispose();
+            clsGlobalMembers.watcher.Dispose();
 
             // Log service stop
-            LogServiceEvent("Service stopped. [Console Side]");
+            clsLogAndValidation.LogServiceEvent("Service stopped. [Console Side]");
         }
 
 

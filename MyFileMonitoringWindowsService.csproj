@@ -50,6 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="clsGlobalMembers.cs" />
+    <Compile Include="clsLogAndValidation.cs" />
     <Compile Include="MyFileMonitoringWindowsService.cs">
       <SubType>Component</SubType>
     </Compile>
