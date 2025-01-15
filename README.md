@@ -45,8 +45,7 @@ To build the project, follow these steps:
 
 ### Uninstall the Service
 1. Open a Command Prompt as Administrator.
-2. Navigate to the directory containing the compiled service (`bin\Release`).
-3. Run the following command to uninstall the service:
+2. Run the following command to uninstall the service:
    ```bash
    sc delete MyFileMonitoringWindowsService
 ---
