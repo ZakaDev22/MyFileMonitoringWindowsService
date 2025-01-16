@@ -27,7 +27,14 @@ namespace MyFileMonitoringWindowsService
                 ServiceName = "MyFileMonitoringWindowsService",
                 DisplayName = "My File Monitor Service State Implementation Example",
                 Description = "A Windows Service that demonstrates all service states and events.",
-                StartType = ServiceStartMode.Automatic
+                StartType = ServiceStartMode.Automatic,
+
+                ServicesDependedOn = new string[]
+                {
+                    "EventLog",       // For logging to the Windows Event Log
+                    "RpcSs",          // Remote Procedure Call
+                    "LanmanWorkstation" // Workstation service for network paths
+                 }
             };
 
             // Add both installers to the Installers collection
