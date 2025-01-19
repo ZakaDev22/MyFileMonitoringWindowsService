@@ -7,9 +7,6 @@ namespace MyFileMonitoringWindowsService
 {
     public partial class MyFileMonitoringWindowsService : ServiceBase
     {
-
-
-
         public MyFileMonitoringWindowsService()
         {
             InitializeComponent();
